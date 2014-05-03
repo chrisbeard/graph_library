@@ -3,40 +3,44 @@
 #include <iostream>
 
 //This class will be used to create a graph library.
+enum Type {DIRECTED,UNDIRECTED};
 
 class Graph{
 	private:
 		//Put your private data members here
 		//Put your private methods here
 	public:
-		//Construct
-		Graph();
-		//Delete
+		//Construct an empty graph of the specified type
+		Graph(Type t);
+		//Delete a graph
 		~Graph();
-		//Read A Graph From A File
+		//Read a graph from a file
 		void readFromFile(std::string file);
-		//Write A Graph To A File
+		//Write a graph to a file
 		void writeToFile(std::string file);
 		//Empty
 		bool empty();
-		//Add Edge
+		//Add edge
 		void addEdge(int v1, int v2, double weight);
-		//Add Vertex
+		//Add vertex
 		void addVertex();
-		//Count Connected Components
+		//Count connected components
 		int numConnectedComponents();
-		//Tree Check
+		//Tree check
 		bool tree();
-		//Depth First Traverse
+		//Depth First Traverse - proceed from source
 		void DFT(int source);
-		//Breadth First Traverse
+		//Breadth First Traverse - proceed from source
 		void BFT(int source);
-		//Closeness
-		int closeness(std::string v1, std::stringv2);
-		//* Partition
+		//Closeness - determine minimum number of edges to get
+		// from one node to the other
+		int closeness(int v1, int v2);
+		//* Partition - determine if you can partition the graph
 		bool partitionable();
-		//* MST
-		bool MST(const Graph& g, std::string file);
-		//* Step Away
-		void stepAway(int value, std::string file);
+		//* MST - print the minimum spanning tree of the graph
+		//to a file with the passed name
+		bool MST(std::string file);
+		//* Step Away - print the nodes who are a degree of
+		//closeness from the source to a file with the passed name
+		void stepAway(int source, int closeness, std::string file);
 };
