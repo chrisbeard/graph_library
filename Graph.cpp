@@ -3,7 +3,9 @@
 
 //Construct an empty graph of the specified type
 Graph::Graph(Type t){
-
+	gType = t;
+	vertex<Edge*> temp;
+	edgeList = temp;
 }
 		
 //Delete a graph
@@ -13,7 +15,18 @@ Graph::~Graph(){
 		
 //Read a graph from a file
 void Graph::readFromFile(std::string file){
-
+	std::ifstream myfile(file);
+	//if the file was opened successfully
+        if(myfile.is_open()){
+                std::string line;
+                while(getline(myfile, line)){
+			//read file
+                }
+                myfile.close();
+        } 
+        else {
+                std::cerr << "Failed to open the file." << std::endl;
+        }
 }
 		
 //Write a graph to a file
@@ -23,7 +36,11 @@ void Graph::writeToFile(std::string file){
 		
 //Empty
 bool Graph::empty(){
-
+	bool retval = false;	
+	if(edgeList.size() == 0){
+		retval = true;
+	}
+	return retval;
 }
 		
 //Add edge
