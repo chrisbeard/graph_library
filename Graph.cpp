@@ -1,10 +1,11 @@
 #include <string>
 #include <iostream>
+#include <vector>
 
 //Construct an empty graph of the specified type
 Graph::Graph(Type t){
 	gType = t;
-	vertex<Edge*> temp;
+	vector<Vertex> temp;
 	edgeList = temp;
 }
 		
@@ -43,14 +44,31 @@ bool Graph::empty(){
 	return retval;
 }
 		
-//Add edge
+//Add an edge to the edge list
 void Graph::addEdge(int v1, int v2, double weight){
-
+	Edge temp;
+	temp.weight = weight;
+	temp.vertex[0] = v1;
+	temp.vertex[1] = v2;
+	temp.link[0] = nullptr;
+	temp.link[1] = nullptr;
+	//add the edge to the edgelist for both vertices
+	if(edgeList[v1].first != nullptr){
+		temp.link[0] = edgeList[v1].first;
+	}	
+	edgeList[v1].first = temp;
+	if(edgeList[v2].first != nullptr){
+		temp.link[1] = edgeList[v2].first;
+	}	
+	edgeList[v2].first = temp;
 }
 		
-//Add vertex
+//Add a vertex to the head of the edge list
 void Graph::addVertex(){
-
+	Vertex temp;
+	temp.value = edgeList.size();
+	temp.first = nullptr;
+	edgeList.push_back(temp);
 }
 		
 //Count connected components
