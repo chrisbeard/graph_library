@@ -1,29 +1,29 @@
 //Put any include statements here
 #include <string>
 #include <iostream>
-#include <vertex>
+#include <vector>
 
 //This class will be used to create a graph library.
 enum Type {DIRECTED,UNDIRECTED};
 
-//forward declaration, used for pointer
-struct Edge;
-struct Vertex{
-	int value;
-	Edge* next; 
-};
-//used for edge list, stores a pair of vertices
+//stores edges for edge list
 struct Edge{
-	Vertex v1;
-	Vertex v2;
+	int vertex[2];
+	Edge* link[2];
 	double weight;
 };
+typedef Edge* EdgePointer;
+//used for head node of edge list
+struct Vertex{
+	int value;
+	EdgePointer first;
+}	
 
 class Graph{
 	private:
 		//directed or undirected
 		Type gType;
-		vertex<Edge*> edgeList;
+		vector<Vertex> edgeList;
 	public:
 		//Construct an empty graph of the specified type
 		Graph(Type t);
