@@ -1,52 +1,32 @@
-#ifndef GRAPH_H
-#define GRAPH_H
-
+// Put any include statements here
 #include <string>
-#include <vector>
-#include <set>
 #include <iostream>
 #include <vector>
 
-//This class will be used to create a graph library.
+// This class will be used to create a graph library.
 enum Type {DIRECTED, UNDIRECTED};
 
-
-//stores edges for edge list
-struct Edge{
+// stores edges for edge list
+struct Edge {
 	int vertex[2];
 	Edge* link[2];
-	double weight;
+	double weight[2];
+	size_t direction; // 0 = both, 1 = v[0]->v[1], 2 = v[1]->v[0]
 };
+
 typedef Edge* EdgePointer;
-//used for head node of edge list
-struct Vertex{
+
+// used for head node of edge list
+struct Vertex {
 	int value;
 	EdgePointer first;
 };
 
-
-class Graph {
+class Graph{
 	private:
-		struct Edge {
-			Edge(int _v1, int _v2, double _weight1, double _weight2, int _direction, Edge *_left, Edge *_right) : v1(_v1), v2(_v2), weight1(_weight1), weight2(_weight2), direction(_direction), left(_left), right(_right) {}
-			int v1;		// v1 = min(v1, v2)
-			int v2;		// v2 = max(v1, v2)
-			double weight1;	// for v1->v2
-			double weight2;	// for v2->v1
-			int direction;	// 0 = both, 1 = v1->v2, 2 = v2->v1
-
-			// Edge List pointers
-			Edge *left;
-			Edge *right;
-		};
-
-		std::set<const Graph::Edge *> allEdges(void) const;
-
-		std::vector<Edge*> edgeList;
-		size_t number_of_edges;
-
-		bool directed;
-
+		// directed or undirected
+		Type gType;
+		vector<Vertex> edgeList;
 	public:
 		// Construct an empty graph of the specified type
 		Graph(Type t);
@@ -71,7 +51,7 @@ class Graph {
 		// Breadth First Traverse - proceed from source
 		void BFT(int source);
 		// Closeness - determine minimum number of edges to get
-		// from one node to the other
+		//  from one node to the other
 		int closeness(int v1, int v2);
 		// * Partition - determine if you can partition the graph
 		bool partitionable();
@@ -82,5 +62,3 @@ class Graph {
 		// closeness from the source to a file with the passed name
 		void stepAway(int source, int closeness, std::string file);
 };
-
-#endif 
