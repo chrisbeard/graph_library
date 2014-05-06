@@ -181,12 +181,12 @@ bool Graph::tree() {
 /*
 		
 // Depth First Traverse - proceed from source
-void Graph::DFT(int source) {
+void Graph::DFT(int source, std::string file) {
 	return;
 }
 		
 // Breadth First Traverse - proceed from source
-void Graph::BFT(int source) {
+void Graph::BFT(int source, std::string file) {
 	return;
 }
 		
@@ -203,6 +203,8 @@ bool Graph::partitionable() {
 		
 // * MST - print the minimum spanning tree of the graph
 // to a file with the passed name
+// Prim's - number of edges closer to V^2
+// Kruskal's - otherwise
 bool Graph::MST(std::string file) {
 	return false;
 }
