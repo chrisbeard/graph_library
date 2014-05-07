@@ -2,6 +2,7 @@
 #include <sstream>
 #include <string>
 #include <set>
+#include <queue>
 #include "Graph.h"
 
 // Construct an empty graph of the specified type
@@ -178,14 +179,113 @@ bool Graph::tree() {
 	return false;
 }
 
-/*
-		
 // Depth First Traverse - proceed from source
 void Graph::DFT(int source, std::string file) {
+	//keeps track of which nodes have been visited
+	int visited[edgeList.size()] = {0};
+	//keeps track of the order in which the nodes are visited
+	queue<int> order;
+	if(!directed){
+		DFUndirected(source, visited, order);			
+	}
+	else{
+		DFDirected(source, visited, order);
+	}
+	//print results to file
+	std::ofstream outfile(file, std::ofstream::out);
+	if(outfile.is_open()){
+		while(!order.empty()){
+			outfile << order.front();
+			order.pop();
+		}
+		outfile.close();
+	}
+	//if the file could not be opened
+	else{
+		std::cerr << "Could not open input file.\n";
+	}
+}
+
+//Performs the DFT for an undirected graph
+void Graph::DFUndirected(int node, int& vlist[], queue<int>& oList){
+	Edge *edgePtr = edgeList[node];
+	//mark node as visited
+	vlist[node] = 1;
+	oList.push(node);
+	//while there are still connected nodes
+	while(edgePtr != nullptr){
+		//if this is v1
+		if(edgePtr->v1 == node){
+			//if v2 has not been visited
+			if(!vlist[v2]){
+				DFUndirected(v2, vlist);
+			}
+			else{
+				//increment pointer
+				edgePtr = edgePtr->left;
+			}
+		}
+		//if v1 has not been visited
+		else if(!vlist[v1]){
+			DFUndirected(v1, vlist);	
+		}
+		else{
+			//increment pointer
+			edgePtr = edgePtr->right;
+		}
+	}
 	return;
 }
-		
-// Breadth First Traverse - proceed from source
+
+//Performs the DFT for a directed graph
+void Graph::DFDirected(int node, int& vlist[], queue<int>& oList){
+	Edge *edgePtr = edgeList[node];
+	//mark node as visited
+	vlist[node] = 1;
+	oList.push(node);
+	//while there are still connected nodes
+	while(edgePtr != nullptr){
+		if(edgePointer->direction == 1){
+			//if this is v1
+			if(edgePtr->v1 == node){
+				//if v2 has not been visited
+				if(!vlist[v2]){
+					DFUndirected(v2, vlist);
+				}
+				else{
+					//increment pointer
+					edgePtr = edgePtr->left;
+				}
+			}
+			else{
+				//increment pointer
+				edgePtr = edgePtr->right;
+			}
+		}
+		//if direction == 2
+		else{
+			//if this is v2
+			if(edgePtr->v2 == node){
+				//if v1 has not been visited
+				if(!vlist[v1]){
+					DFUndirected(v1, vlist);
+				}
+				else{
+					//increment pointer
+					edgePtr = edgePtr->right;
+				}
+			}
+			else{
+				//increment pointer
+				edgePtr = edgePtr->left;
+			}
+		}
+	}
+	return;
+}
+
+/*		
+// Breadth First se - proceed from source
 void Graph::BFT(int source, std::string file) {
 	return;
 }
