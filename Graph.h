@@ -32,6 +32,9 @@ class Graph {
 
 		bool directed;
 
+		void DFUndirected(int node, int& vlist[], queue<int>& oList){
+		void DFDirected(int node, int& vlist[], queue<int>& oList){
+
 	public:
 		// Construct an empty graph of the specified type
 		Graph(Type t);
