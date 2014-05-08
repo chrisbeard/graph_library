@@ -218,7 +218,7 @@ void Graph::DFUndirected(int node, int& vlist[], queue<int>& oList){
 		if(edgePtr->v1 == node){
 			//if v2 has not been visited
 			if(!vlist[v2]){
-				DFUndirected(v2, vlist);
+				DFUndirected(v2, vlist, oList);
 			}
 			else{
 				//increment pointer
@@ -227,7 +227,7 @@ void Graph::DFUndirected(int node, int& vlist[], queue<int>& oList){
 		}
 		//if v1 has not been visited
 		else if(!vlist[v1]){
-			DFUndirected(v1, vlist);	
+			DFUndirected(v1, vlist, oList);	
 		}
 		else{
 			//increment pointer
@@ -250,7 +250,7 @@ void Graph::DFDirected(int node, int& vlist[], queue<int>& oList){
 			if(edgePtr->v1 == node){
 				//if v2 has not been visited
 				if(!vlist[v2]){
-					DFUndirected(v2, vlist);
+					DFUndirected(v2, vlist, oList);
 				}
 				else{
 					//increment pointer
@@ -268,7 +268,7 @@ void Graph::DFDirected(int node, int& vlist[], queue<int>& oList){
 			if(edgePtr->v2 == node){
 				//if v1 has not been visited
 				if(!vlist[v1]){
-					DFUndirected(v1, vlist);
+					DFUndirected(v1, vlist, oList);
 				}
 				else{
 					//increment pointer
@@ -295,12 +295,51 @@ void Graph::BFT(int source, std::string file) {
 int Graph::closeness(int v1, int v2) {
 	return -1;
 }
-
-// * Partition - determine if you can partition the graph
+*/
+// Partition - determine if you can partition the graph
 bool Graph::partitionable() {
-	return false;
+	// 0 = not set, 1 = group 1, 2 = group 2;
+	int group[edgeList.size()] = {0}; 
+	for(int i = 0; i < edgeList.size(); i++){
+		if(group[i] == 0){ // if this node has not been set
+			group[i] = 1;
+		}
+		Edge* edgePtr = edgeList[i];
+		while(edgePtr != nullptr){ // for all connected nodes
+			if(edgePtr->v1 == group[i]){ 
+				// if we can get to v2
+				if(edgePtr->direction != 2){
+					// if graph is not partitionable
+					if(group[edgePtr->v2] == group[i]){
+						return false;
+					}	
+					//if node has not been set
+					else if(group[edgePtr->v2] == 0){
+						group[edgePtr->v2] = ((group[i] + 1) % 2);
+					}
+				}
+				edgePtr = edgePtr->left;
+			}
+			else{ // if this is v2
+				// if we can get to v1
+				if(edgePtr->direction != 1){
+					//if the graph is not partionable
+					if(group[edgePtr->v1] == group[i]){
+						return false;
+					}
+					//if node has not been set
+					else if(group[edgePtr->v1] == 0){
+						group[edgePtr->v1] = ((group[i] + 1) % 2);
+					}
+				}
+				edgePtr = edgePtr->right;
+			}
+		}
+	}
+	return true; // if it makes it to this point, the graph is partitionable
 }
-		
+
+/*		
 // * MST - print the minimum spanning tree of the graph
 // to a file with the passed name
 // Prim's - number of edges closer to V^2
