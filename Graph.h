@@ -6,6 +6,7 @@
 #include <set>
 #include <iostream>
 #include <vector>
+#include <queue>
 
 //This class will be used to create a graph library.
 enum Type {DIRECTED, UNDIRECTED};
@@ -32,8 +33,8 @@ class Graph {
 
 		bool directed;
 
-		void DFUndirected(int node, int& vlist[], queue<int>& oList){
-		void DFDirected(int node, int& vlist[], queue<int>& oList){
+		void DFUndirected(int node, std::vector<int> &vlist, std::queue<int> &oList);
+		void DFDirected(int node, std::vector<int> &vlist, std::queue<int> &oList);
 
 	public:
 		// Construct an empty graph of the specified type

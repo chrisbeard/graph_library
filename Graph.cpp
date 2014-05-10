@@ -130,7 +130,7 @@ void Graph::writeToFile(std::string file) {
 		
 // Empty
 bool Graph::empty() {
-	return !!edgeList.size();
+	return !edgeList.size();
 }
 		
 // Add an edge to the edge list
@@ -153,12 +153,18 @@ void Graph::addEdge(int v1, int v2, double weight) {
 		weight1 = weight;
 		weight2 = weight;
 	}
+
+	// Need to make sure the list can hold largest node
+	for (size_t i = edgeList.size(); i < (unsigned)std::max(v1,v2); ++i) {
+		addVertex();
+	}
 	
 	// Allocates an Edge on the heap
 	// Edge is inserted at the front of the edge list for both node values
 	// The left & right pointers are adjusted to point to the previous first edges in the list
-	edgeList[node1] = new Edge(node1, node2, weight1, weight2, direction, edgeList[node1], edgeList[node2]);
-	edgeList[node2] = edgeList[node1];
+	Edge *e = new Edge(node1, node2, weight1, weight2, direction, edgeList[node1], edgeList[node2]);
+	edgeList[node1] = e;
+	edgeList[node2] = e;
 	++number_of_edges;
 }
 		
@@ -182,19 +188,19 @@ bool Graph::tree() {
 // Depth First Traverse - proceed from source
 void Graph::DFT(int source, std::string file) {
 	//keeps track of which nodes have been visited
-	int visited[edgeList.size()] = {0};
+	std::vector<int> visited = std::vector<int>(edgeList.size(), 0);
 	//keeps track of the order in which the nodes are visited
-	queue<int> order;
-	if(!directed){
+	std::queue<int> order;
+	if(!directed) {
 		DFUndirected(source, visited, order);			
 	}
-	else{
+	else {
 		DFDirected(source, visited, order);
 	}
 	//print results to file
 	std::ofstream outfile(file, std::ofstream::out);
-	if(outfile.is_open()){
-		while(!order.empty()){
+	if (outfile.is_open()) {
+		while (!order.empty()) {
 			outfile << order.front();
 			order.pop();
 		}
@@ -207,75 +213,76 @@ void Graph::DFT(int source, std::string file) {
 }
 
 //Performs the DFT for an undirected graph
-void Graph::DFUndirected(int node, int& vlist[], queue<int>& oList){
+void Graph::DFUndirected(int node, std::vector<int> &vlist, std::queue<int>& oList) {
 	Edge *edgePtr = edgeList[node];
 	//mark node as visited
 	vlist[node] = 1;
 	oList.push(node);
 	//while there are still connected nodes
-	while(edgePtr != nullptr){
+	while (edgePtr != nullptr) {
 		//if this is v1
-		if(edgePtr->v1 == node){
+		if (edgePtr->v1 == node) {
 			//if v2 has not been visited
-			if(!vlist[v2]){
-				DFUndirected(v2, vlist, oList);
+			if (!vlist[edgePtr->v2]){
+				DFUndirected(edgePtr->v2, vlist, oList);
 			}
-			else{
+			else {
 				//increment pointer
 				edgePtr = edgePtr->left;
 			}
 		}
 		//if v1 has not been visited
-		else if(!vlist[v1]){
-			DFUndirected(v1, vlist, oList);	
+		else if (!vlist[edgePtr->v1]) {
+			DFUndirected(edgePtr->v1, vlist, oList);	
 		}
-		else{
+		else {
 			//increment pointer
 			edgePtr = edgePtr->right;
 		}
 	}
+
 	return;
 }
 
 //Performs the DFT for a directed graph
-void Graph::DFDirected(int node, int& vlist[], queue<int>& oList){
+void Graph::DFDirected(int node, std::vector<int> &vlist, std::queue<int>& oList) {
 	Edge *edgePtr = edgeList[node];
 	//mark node as visited
 	vlist[node] = 1;
 	oList.push(node);
 	//while there are still connected nodes
-	while(edgePtr != nullptr){
-		if(edgePointer->direction == 1){
+	while(edgePtr != nullptr) {
+		if(edgePtr->direction == 1) {
 			//if this is v1
-			if(edgePtr->v1 == node){
+			if(edgePtr->v1 == node) {
 				//if v2 has not been visited
-				if(!vlist[v2]){
-					DFUndirected(v2, vlist, oList);
+				if(!vlist[edgePtr->v2]){
+					DFUndirected(edgePtr->v2, vlist, oList);
 				}
-				else{
+				else {
 					//increment pointer
 					edgePtr = edgePtr->left;
 				}
 			}
-			else{
+			else {
 				//increment pointer
 				edgePtr = edgePtr->right;
 			}
 		}
 		//if direction == 2
-		else{
+		else {
 			//if this is v2
-			if(edgePtr->v2 == node){
+			if (edgePtr->v2 == node){
 				//if v1 has not been visited
-				if(!vlist[v1]){
-					DFUndirected(v1, vlist, oList);
+				if (!vlist[edgePtr->v1]){
+					DFUndirected(edgePtr->v1, vlist, oList);
 				}
-				else{
+				else {
 					//increment pointer
 					edgePtr = edgePtr->right;
 				}
 			}
-			else{
+			else {
 				//increment pointer
 				edgePtr = edgePtr->left;
 			}
@@ -299,8 +306,8 @@ int Graph::closeness(int v1, int v2) {
 // Partition - determine if you can partition the graph
 bool Graph::partitionable() {
 	// 0 = not set, 1 = group 1, 2 = group 2;
-	int group[edgeList.size()] = {0}; 
-	for(int i = 0; i < edgeList.size(); i++){
+	std::vector<int> group = std::vector<int>(edgeList.size(), 0); 
+	for(size_t i = 0; i < edgeList.size(); i++){
 		if(group[i] == 0){ // if this node has not been set
 			group[i] = 1;
 		}
