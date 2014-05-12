@@ -31,7 +31,8 @@ class Graph {
 
 		void DFUndirected(int node, std::vector<int> &vlist, std::queue<int> &oList);
 		void DFDirected(int node, std::vector<int> &vlist, std::queue<int> &oList);
-
+		void treeHelper(int source std::vector<int> &vlist);
+		void sortEdges(int node);
 	public:
 		// Construct an empty graph of the specified type
 		Graph(Type t);
