@@ -202,7 +202,55 @@ int Graph::numConnectedComponents() {
 		
 // Tree check
 bool Graph::tree() {
-	return false;
+	bool retval = true;
+	//keeps track of which nodes have been visited
+	std::vector<int> visited = std::vector<int>(edgeList.size(), 0);
+	//keeps track of the order in which the nodes are visited
+	std::queue<int> order;
+	//check if tree is connected and acyclic	
+	treeHelper(0, visited);			
+	for(int i = 0; i < visited.size(); i++){
+		if(visited[i] != 1){
+			retval = false;
+			break;
+		}
+	}
+	return retval;
+}
+
+//Performs the DFT to check if the graph is a tree
+void Graph::treeHelper(int source, std::vector<int> &vlist) {
+	Edge *edgePtr = edgeList[source];
+	//mark node as visited
+	if(vlist[node] >= 1){
+		vlist = 2;
+	}
+	else{
+		vlist[node] = 1;
+	}
+	//while there are still connected nodes
+	while (edgePtr != nullptr) {
+		//if this is the left vertex
+		if (edgePtr->vertex[LEFT] == node) {
+			//if the right vertex has not been visited
+			if (!vlist[edgePtr->vertex[RIGHT]]){
+				treeHelper(edgePtr->vertex[RIGHT], vlist);
+			}
+			else {
+				//increment pointer
+				edgePtr = edgePtr->link[LEFT];
+			}
+		}
+		//if v1 has not been visited
+		else if (!vlist[edgePtr->vertex[LEFT]]) {
+			treeHelper(edgePtr->vertex[LEFT], vlist);	
+		}
+		else {
+			//increment pointer
+			edgePtr = edgePtr->link[RIGHT];
+		}
+	}
+	return;
 }
 
 // Depth First Traverse - proceed from source
