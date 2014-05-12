@@ -5,34 +5,39 @@
 #include <vector>
 #include <set>
 #include <iostream>
-#include <vector>
 #include <queue>
 
 //This class will be used to create a graph library.
 enum Type {DIRECTED, UNDIRECTED};
-enum Direction {BOTH, LEFT, RIGHT};
 
 class Graph {
 	private:
-		//Struct used to represent edges in edge list
 		struct Edge {
-			Edge(int v1, int v2, double w1, double w2, int d, Edge *l, Edge *r) : vertex[LEFT](v1), vertex[RIGHT](v2), weight[LEFT](w1), weight[RIGHT](w2), direction(d), link[LEFT](l), link[RIGHT](r) {}
-			int vertex[3];
-			Edge* link[3];
-			double weight[3];
-			size_t direction;
+			Edge(int _v1, int _v2, double _weight1, double _weight2, int _direction, Edge *_left, Edge *_right) : v1(_v1), v2(_v2), weight1(_weight1), weight2(_weight2), direction(_direction), left(_left), right(_right) {}
+			int v1;			// v1 = min(v1, v2)
+			int v2;			// v2 = max(v1, v2)
+			double weight1;	// for v1->v2
+			double weight2;	// for v2->v1
+			int direction;	// 0 = both, 1 = v1->v2, 2 = v2->v1
+
+			// Edge List pointers
+			Edge *left;
+			Edge *right;
 		};
-	
+
+		std::set<const Graph::Edge *> allEdges(void) const;
+
 		std::vector<Edge*> edgeList;
-		std::set<const Graph::Edge *> allEdges(void) const;	
+		size_t number_of_edges;
 
 		bool directed;
-		size_t number_of_edges;
 
 		void DFUndirected(int node, std::vector<int> &vlist, std::queue<int> &oList);
 		void DFDirected(int node, std::vector<int> &vlist, std::queue<int> &oList);
-		void treeHelper(int source std::vector<int> &vlist);
-		void sortEdges(int node);
+
+		void BFUndirected(int node, std::vector<int> &vlist, std::queue<int> &oList);
+		void BFDirected(int node, std::vector<int> &vlist, std::queue<int> &oList);
+
 	public:
 		// Construct an empty graph of the specified type
 		Graph(Type t);

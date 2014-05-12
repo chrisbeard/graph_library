@@ -4,13 +4,26 @@
 #include "catch.hpp"
 #include <sstream>
 
-/*
+
 TEST_CASE("readFromFile(std::string file)", "File input") {
 	Graph G(DIRECTED);
-	G.readFromFile("test_input.txt");
+
+	std::string fileName = "test_input.txt";
+	G.readFromFile(fileName);
 	G.writeToFile("test_input-output.txt");
 }
-*/
+
+TEST_CASE("empty()", "Empty graph") {
+	Graph G(DIRECTED);
+	REQUIRE(G.empty());
+	G.addVertex();
+	REQUIRE(!G.empty());
+
+	Graph GG(UNDIRECTED);
+	REQUIRE(GG.empty());
+	GG.addVertex();
+	REQUIRE(!GG.empty());
+}
 
 TEST_CASE("addVertex()", "Allocate space for an edge") {
 	Graph GD(DIRECTED);
@@ -26,9 +39,66 @@ TEST_CASE("addVertex()", "Allocate space for an edge") {
 	
 TEST_CASE("addEdge(int v1, int v2, double weight)", "Add graph edge") {
 	Graph G(DIRECTED);
-	G.addEdge(1,2,3.12);
-	G.addEdge(2,5,7.25);	// TODO: figure out why this isn't in output file
-	G.addEdge(2,1,3.21);
-	G.addEdge(5,1,6.51);
-	G.writeToFile("test_add-edge.txt");
+	REQUIRE_THROWS(G.addEdge(1,2,3.12));
+
+	Graph GG(UNDIRECTED);
+	for (size_t i = 0; i < 5; ++i) {
+		GG.addVertex();
+	}
+	GG.addEdge(1,2,3.12);
+	GG.addEdge(2,5,7.25);
+	GG.addEdge(2,1,3.21);
+	GG.addEdge(5,1,6.51);
+	GG.writeToFile("test_add-edge.txt");
 }
+
+
+TEST_CASE("tree()", "Is tree") {
+	Graph G(UNDIRECTED);
+	for (size_t i = 0; i < 3; ++i) {
+		G.addVertex();
+	}
+	G.addEdge(1,2,3.12);
+	G.addEdge(1,3,4.13);
+	REQUIRE(G.tree());
+	G.addVertex();
+	REQUIRE(!G.tree());
+
+	Graph DG(DIRECTED);
+	for (size_t i = 0; i < 3; ++i) {
+		DG.addVertex();
+	}
+	DG.addEdge(1,2,3.12);
+	DG.addEdge(1,3,4.13);
+	REQUIRE(DG.tree());
+	DG.addEdge(3,2,5.32);
+	REQUIRE(!DG.tree());
+	DG.addEdge(3,1,4.31);
+	REQUIRE(!DG.tree());
+}
+
+TEST_CASE("DFT(int, std::string)", "Depth Frist Traverse") {
+	Graph G(UNDIRECTED);
+	G.readFromFile("g1.txt");
+	G.writeToFile("g1_output");
+	G.DFT(1, "g1-dft1.txt");
+
+	Graph G2(DIRECTED);
+	G2.readFromFile("g2.txt");
+	G2.writeToFile("g2_output.txt");
+	G2.DFT(2, "g2-dft2.txt");
+	G2.DFT(4, "g2-dft4.txt");
+}
+
+TEST_CASE("BFT(int, std::string)", "Breadth Frist Traverse") {
+	Graph G(UNDIRECTED);
+	G.readFromFile("g1.txt");
+	G.writeToFile("g1_output");
+	G.BFT(2, "g1-bft2.txt");
+
+	Graph G2(DIRECTED);
+	G2.readFromFile("g2.txt");
+	G2.writeToFile("g2_output.txt");
+	G2.BFT(7, "g2-bft7.txt");
+}
+
