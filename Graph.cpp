@@ -115,11 +115,11 @@ void Graph::addEdge(int v1, int v2, double weight) {
 	if (directed) {
 		if (node1 == v1) {
 			weight1 = weight;
-			direction = 1;
+			direction = LEFT;
 		}
 		else {
 			weight2 = weight;
-			direction = 2;
+			direction = RIGHT;
 		}
 	}
 	else {
@@ -321,7 +321,7 @@ void Graph::DFDirected(int node, std::vector<int> &vlist, std::queue<int>& oList
 	oList.push(node);
 	//while there are still connected nodes
 	while(edgePtr != nullptr) {
-		if(edgePtr->direction == 1) {
+		if(edgePtr->direction == LEFT) {
 			//if this is v1
 			if(edgePtr->vertex[LEFT] == node) {
 				//if v2 has not been visited
@@ -384,7 +384,7 @@ bool Graph::partitionable() {
 		while(edgePtr != nullptr){ // for all connected nodes
 			if(edgePtr->vertex[LEFT] == group[i]){ 
 				// if we can get to v2
-				if(edgePtr->direction != 2){
+				if(edgePtr->direction != RIGHT){
 					// if graph is not partitionable
 					if(group[edgePtr->vertex[RIGHT]] == group[i]){
 						return false;
@@ -398,7 +398,7 @@ bool Graph::partitionable() {
 			}
 			else{ // if this is v2
 				// if we can get to v1
-				if(edgePtr->direction != 1){
+				if(edgePtr->direction != LEFT){
 					//if the graph is not partionable
 					if(group[edgePtr->vertex[LEFT]] == group[i]){
 						return false;
