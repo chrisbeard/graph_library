@@ -146,9 +146,10 @@ void Graph::sortEdges(int node) {
 	Edge *edgeNext = edgeList[node];
 	edge *edgePrev = edgeList[node];
 	int index, index2, index3 = 0;
-	bool isFirst, isSorted = true;
+	bool isFirst = true;
+	bool isSorted = false;
 	//sort in ascending order
-	while(1){
+	while(!isSorted){
 		if(edgePtr->vertex[LEFT] == node){
 			edgeNext = edgePtr->link[LEFT];
 			index = RIGHT;
