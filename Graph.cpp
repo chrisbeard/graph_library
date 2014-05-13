@@ -539,14 +539,83 @@ void Graph::BFDirected(int node, std::vector<int> &vlist, std::queue<int> &olist
 	}
 }
 
-/*		
-		
 // Closeness - determine minimum number of edges to get
 //  from one node to the other
-int Graph::closeness(int vertex[LEFT], int vertex[RIGHT]) {
-	return -1;
+int Graph::closeness(int v1, int v2) {
+	if(v1 == v2){
+		return 0;
+	}
+	int retval = 0;
+	int count = 1;
+	int distance = 0;
+	std::vector<int> visited = std::vector<int>(edgeList.size(), 0);
+	std::queue<int> adjacent;
+	adjacent.push(v1);
+	//BFS
+	while(!adjacent.empty()){
+		//if this node has not been visited
+		if(!visited[adjacent.front()]){
+			if(!directed){
+				distance = undirectedClose(adjacent.front(), v2, count, visited, adjacent);
+			}
+			else{
+				distance = directedClose(adjacent.front(), v2, count, visited, adjacent);
+			}
+			//if this edge is linked to v2
+			if(distance == 0){
+				retval++;
+				break;
+			}
+			if(count <= 0)
+			retval++;			
+		}
+		adjacent.pop();
+		count--;
+	}
+	//if the nodes are not connected
+	if(retval == 0){
+		retval = -1;
+	}
+	return retval;
 }
-*/
+
+int Graph::undirectedClose(int v1, int v2, int &cnt, std::vector<int> &vlist, std::queue<int> &alist){
+	Edge * edgePtr = edgeList[v1];
+	//for all edges 
+	while(edgePtr != nullptr){
+		//if the nodes are linked
+		if(edgePtr->vertex[LEFT] == v2 || edgePtr->vertex[RIGHT] == v2){
+			return 0;
+		}
+		alist.push(edgePtr->vertex[LEFT] == v1 ? edgePtr->vertex[RIGHT] : edgePtr->vertex[LEFT] );
+		cnt ++;
+		edgePtr = (edgePtr->vertex[LEFT] == v1 ? edgePtr->link[LEFT] : edgePtr->link[RIGHT]);
+	}
+	//mark node as visited
+	vlist[v1] = 1;
+	return 1;
+}
+
+int Graph::directedClose(int v1, int v2, int &cnt, std::vector<int> &vlist, std::queue<int> &alist){
+	Edge * edgePtr = edgeList[v1];
+	//for all edges 
+	while(edgePtr != nullptr){
+		//if the nodes are linked
+		if((edgePtr->vertex[LEFT] == v2 && edgePtr->direction == RIGHT) || (edgePtr->vertex[RIGHT] == v2 && edgePtr->direction == LEFT)){
+			return 0;	
+		}
+		else if((edgePtr->vertex[LEFT] == v1 && edgePtr->direction == LEFT) || (edgePtr->vertex[RIGHT] == v1 && edgePtr->direction == RIGHT)){		
+			cnt++;
+			alist.push(edgePtr->vertex[LEFT] == v1 ? edgePtr->vertex[RIGHT] : edgePtr->vertex[LEFT]);
+		}
+		edgePtr = (edgePtr->vertex[LEFT] == v1 ? edgePtr->link[LEFT] : edgePtr->link[RIGHT]);
+	}
+	//mark node as visited
+	vlist[v1] = 1;
+	return 1;
+} 
+
+
 // Partition - determine if you can partition the graph
 bool Graph::partitionable() {
 	// 0 = not set, 1 = group 1, 2 = group 2;
