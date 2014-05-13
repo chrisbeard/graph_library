@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -Wall -Wextra -Werror -std=c++0x -g
+CXXFLAGS = -Wall -Wextra -Werror -std=c++11 -g
 EXECUTABLE = graph_exec
 
 $(EXECUTABLE): Tester.o Graph.o

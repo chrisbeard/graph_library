@@ -1,5 +1,0 @@
-General notes
-=============
-
-Edge list for both implementations
-

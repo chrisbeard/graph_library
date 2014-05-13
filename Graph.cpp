@@ -1,5 +1,7 @@
 #include "Graph.h"
+#include <algorithm>
 #include <fstream>
+#include <map>
 #include <queue>
 #include <set>
 #include <sstream>
@@ -42,8 +44,7 @@ void Graph::readFromFile(std::string file) {
 		std::cerr << "Could not open input file.\n";
 		return;
 	}
-	
-	
+		
 	std::string graphdef;
 
 	std::getline(inputFile, graphdef);
@@ -149,6 +150,9 @@ bool Graph::empty() {
 
 // Add an edge to the edge list
 void Graph::addEdge(int v1, int v2, double weight) {
+	if (edgeList.size() < 2) {
+		throw("Not enough space");
+	}
 	int node1 = std::min(v1, v2);
 	int node2 = std::max(v1, v2);
 	double weight1 = 0;
@@ -252,57 +256,7 @@ void Graph::addEdge(int v1, int v2, double weight) {
 		}
 	}
 }
-
-
-//used to sort the edges as they are added to the edge list
-// void Graph::sortEdges(int node) {
-// 	Edge *edgePtr = edgeList[node];
-// 	Edge *edgeNext = edgeList[node];
-// 	Edge *edgePrev = edgeList[node];
-// 	int index, index2 = 0;
-// 	bool isFirst = true;
-// 	bool isSorted = false;
-// 	//sort in ascending order
-// 	while(!isSorted) {
-// 		if (edgePtr->vertex[LEFT] == node) {
-// 			edgeNext = edgePtr->link[LEFT];
-// 			index = RIGHT;
-// 		}
-// 		else {
-// 			edgeNext = edgePtr->link[RIGHT];
-// 			index = LEFT;
-// 		}
-// 		//if we've reached the end of the list
-// 		if (edgeNext == nullptr) {
-// 			break;
-// 		}
-// 		index2 = (edgeNext->vertex[LEFT] == node ? RIGHT : LEFT);
-// 		if (edgePtr->vertex[index] > edgeNext->vertex[index2]) {
-// 			//swap index values
-// 			index = (index == LEFT ? RIGHT : LEFT);
-// 			index2 = (index2 == LEFT ? RIGHT : LEFT);	
-// 			//adjust pointers
-// 			edgePtr->link[index] = edgeNext->link[index2];
-// 			edgeNext->link[index2] = edgePtr;
-// 			if (isFirst) {
-// 				edgeList[node] = edgeNext;
-// 				isFirst = false;		
-// 			}
-// 			else {
-// 				// index3 = (edgePrev->vertex[LEFT] == node ? LEFT : RIGHT);
-// 				edgePrev->link[LEFT] = edgeNext;
-// 			}
-// 		}
-// 		//if this edge has the smaller vertex, the list is sorted
-// 		else {
-// 			isSorted = true;
-// 		}
-// 		//if we swapped the next node will now be the previous
-// 		//otherwise, we will exit the loop anyway
-// 		edgePrev = edgeNext;
-// 	}
-// }
-		
+	
 // Add a vertex to the head of the edge list
 void Graph::addVertex() {
 	// All we need to do is allocated space for an edge
@@ -310,27 +264,13 @@ void Graph::addVertex() {
 	edgeList.push_back(nullptr);
 }
 		
-// Count connected components
 int Graph::numConnectedComponents() {
 	size_t components = 0;
-	bool done = false;
-
-	std::vector<int> visited = std::vector<int>(edgeList.size(), 0);
-	std::queue<int> order;
-	while (!done) {
-		int start = 0;
-		done = true;
-		for (size_t i = 0; i < visited.size(); i ++) {
-			if (visited[i] == 0 && edgeList[i]) {
-				done = false;
-				start = i;
-				break;
-			}
-		}
-		if (!done) {
-			// Undirected search is what we want here - direction doesn't matter
-			BFUndirected(start, visited, order);
+	std::vector<bool> visited(edgeList.size(), false);
+	for (size_t i = 1; i < visited.size(); ++i) {
+		if (!visited[i]) {
 			++components;
+			breadthFirstApply(visited, i, [&](int){ return false; }, true);
 		}
 	}
 
@@ -463,8 +403,26 @@ void Graph::DFDirected(int node, std::vector<int> &vlist, std::queue<int>& olist
 	olist.push(node);
 }
 
-// Breadth First search - proceed from source
 void Graph::BFT(int source, std::string file) {
+	std::queue<int> order;
+	std::vector<bool> visited(edgeList.size(), false);
+	breadthFirstApply(visited, source, [&](int node) {
+		order.push(node);	
+		return false;
+	}, !directed);
+
+	std::ofstream outfile(file);
+	if (outfile) {
+		// std::cout << order.size() << "\n";
+		while (!order.empty()) {
+			int node = order.front();
+			order.pop();
+			outfile << node << "\n";
+		}
+	}
+}
+// Breadth First search - proceed from source
+/*void Graph::BFT(int source, std::string file) {
 	// keeps track of which nodes have been visited
 	std::vector<int> visited = std::vector<int>(edgeList.size(), 0);
 	// keeps track of the order in which the nodes are visited
@@ -511,9 +469,9 @@ void Graph::BFUndirected(int node, std::vector<int> &vlist, std::queue<int> &oli
 
 		olist.push(node);
 	}
-}
+}*/
 
-void Graph::BFDirected(int node, std::vector<int> &vlist, std::queue<int> &olist) {
+/*void Graph::BFDirected(int node, std::vector<int> &vlist, std::queue<int> &olist) {
 	std::queue<int> nodeQueue;
 	nodeQueue.push(node);
 	while (!nodeQueue.empty()) {
@@ -537,10 +495,11 @@ void Graph::BFDirected(int node, std::vector<int> &vlist, std::queue<int> &olist
 
 		olist.push(node);
 	}
-}
+}*/
 
+	
 // Closeness - determine minimum number of edges to get
-//  from one node to the other
+// from one node to the other
 int Graph::closeness(int v1, int v2) {
 	if(v1 == v2){
 		return 0;
@@ -613,64 +572,220 @@ int Graph::directedClose(int v1, int v2, int &cnt, std::vector<int> &vlist, std:
 	//mark node as visited
 	vlist[v1] = 1;
 	return 1;
-} 
-
+}
 
 // Partition - determine if you can partition the graph
 bool Graph::partitionable() {
-	// 0 = not set, 1 = group 1, 2 = group 2;
-	std::vector<int> group = std::vector<int>(edgeList.size(), 0); 
-	for(size_t i = 0; i < edgeList.size(); i++){
-		if(group[i] == 0){ // if this node has not been set
-			group[i] = 1;
+	std::vector<int> group(edgeList.size(), 0);
+	std::vector<bool> visited(edgeList.size(), 0);
+
+	int currentGroup = 1;
+	bool partitionable = true;
+	breadthFirstApply(visited, 1, [&](int node) {
+		if (group[node] == 0) {
+			group[node] = currentGroup;
 		}
-		Edge* edgePtr = edgeList[i];
-		while(edgePtr != nullptr){ // for all connected nodes
-			if(edgePtr->vertex[LEFT] == group[i]){ 
-				// if we can get to vertex[RIGHT]
-				if(edgePtr->direction != 2){
-					// if graph is not partitionable
-					if(group[edgePtr->vertex[RIGHT]] == group[i]){
-						return false;
-					}	
-					//if node has not been set
-					else if(group[edgePtr->vertex[RIGHT]] == 0){
-						group[edgePtr->vertex[RIGHT]] = ((group[i] + 1) % 2);
-					}
-				}
-				edgePtr = edgePtr->link[LEFT];
+
+		currentGroup = group[node] == 1 ? 2 : 1;
+		Edge *e = edgeList[node];
+		while (e) {
+			int child = e->vertex[LEFT] == node ? e->vertex[RIGHT] : e->vertex[LEFT];
+			if (group[child] == 0) {
+				group[child] = currentGroup;
+			} else if (group[child] != currentGroup) {
+				partitionable = false;
+				return true;
 			}
-			else{ // if this is vertex[RIGHT]
-				// if we can get to vertex[LEFT]
-				if(edgePtr->direction != 1){
-					//if the graph is not partionable
-					if(group[edgePtr->vertex[LEFT]] == group[i]){
-						return false;
-					}
-					//if node has not been set
-					else if(group[edgePtr->vertex[LEFT]] == 0){
-						group[edgePtr->vertex[LEFT]] = ((group[i] + 1) % 2);
-					}
-				}
-				edgePtr = edgePtr->link[RIGHT];
-			}
+
+			e = e->vertex[LEFT] == node ? e->link[LEFT] : e->link[RIGHT];
 		}
-	}
-	return true; // if it makes it to this point, the graph is partitionable
+
+		return false;
+	}, true);
+
+	return partitionable;
 }
 
-/*		
+
+void Graph::breadthFirstApply(std::vector<bool> &visited, int source, const std::function<bool(int)> &lambda, bool ignoreDirections) {
+	std::queue<int> vertices;
+	vertices.push(source);
+	while (!vertices.empty()) {
+		int node = vertices.front();
+//		std::cout << node << "\n";
+		vertices.pop();
+
+		if (visited[node]) {
+			break;
+		}
+
+		visited[node] = true;
+		if (lambda(node)) {
+			break;
+		}
+
+		Edge *e = edgeList[node];
+		while (e) {
+			if (e->vertex[LEFT] && !visited[e->vertex[RIGHT]]
+				&& (ignoreDirections || (directed && e->direction == LEFT))) {
+				vertices.push(e->vertex[RIGHT]);
+			} else if (e->vertex[RIGHT] && !visited[e->vertex[LEFT]]
+				&& (ignoreDirections || (directed && e->direction == RIGHT))) {
+				vertices.push(e->vertex[LEFT]);
+			}
+
+			e = e->vertex[LEFT] == node ? e->link[LEFT] : e->link[RIGHT];
+		}
+	}
+}
+		
 // * MST - print the minimum spanning tree of the graph
 // to a file with the passed name
-// Prim's - number of edges closer to V^2
-// Kruskal's - otherwise
+// Kruskal's - minimum spanning forrest 
+
+// There is a lot of stuff here. It works, and that's what matters.
 bool Graph::MST(std::string file) {
-	return false;
+	std::vector<bool> included(edgeList.size(), 0);
+
+	std::ofstream outfile(file);
+	if (!outfile) {
+		return false;
+	}
+
+	if (empty()) {
+		return true;
+	}
+
+	// Declare a comparator for use in sortingv1 the edges by minimum weight.
+	auto edgeComparator = [](const Edge *e1, const Edge *e2) {
+		return (e1->direction == RIGHT ? e1->weight[RIGHT] : e1->weight[LEFT])
+			 < (e2->direction == RIGHT ? e2->weight[RIGHT] : e2->weight[LEFT]);
+		// return (std::min(e1->weight[RIGHT], e1->weight[LEFT])
+		// 	  < std::min(e2->weight[RIGHT], e2->weight[LEFT]));
+	};
+
+	// Awful syntax, but declares edges to be a set of edge pointers guaranteed
+	// to be sorted in non-decreasing order by weight. Add all the edges to it
+	// and they will be automatically sorted.
+	std::set<const Edge *, decltype(edgeComparator)> edges(edgeComparator);
+	for (const Edge *e : allEdges()) {
+		// std::cout << e->vertex[LEFT] << " " << e->vertex[RIGHT] << "\n";
+		edges.insert(e);
+	}
+
+	std::vector<size_t> disjointSet(edgeList.size());
+	for (size_t i = 0; i < disjointSet.size(); ++i) {
+		disjointSet[i] = i;
+	}
+
+	std::map<size_t, std::vector<const Edge *>> components;
+
+	while (!edges.empty()) {
+		// Because the edges set is always sorted (because we gave it a custom
+		// comparator, edges.front() is guaranteed to return the minimum weight
+		// edge);
+		const Edge *e = *edges.begin();
+		edges.erase(e);
+
+		int v1, v2;
+		if (e->direction == RIGHT) {
+			v1 = e->vertex[RIGHT];
+			v2 = e->vertex[LEFT];
+		} else {
+			v1 = e->vertex[LEFT];
+			v2 = e->vertex[RIGHT];
+		}
+
+		// Both nodes already belong to the same set; taking this edge would
+		// introduce a cycle.
+		if (disjointSet[v1] == disjointSet[v2]) {
+			continue;
+		}
+
+		// Take the union of the two sets by combining both to use the
+		// minimum representative.
+		size_t newSet = std::min(disjointSet[v1], disjointSet[v2]);
+		size_t oldSet = std::max(disjointSet[v1], disjointSet[v2]);
+		
+		for (size_t i = 0; i < disjointSet.size(); ++i) {
+			if (disjointSet[i] == oldSet) {
+				disjointSet[i] = newSet;
+			}
+		}
+
+		std::vector<const Edge *> component1 = components[newSet];
+		if (components.find(newSet) == components.end()) {
+			component1 = std::vector<const Edge *>();
+		}
+
+		std::vector<const Edge *> component2 = components[oldSet];
+		if (components.find(oldSet) == components.end()) {
+			component2 = std::vector<const Edge *>();
+		} else {
+			components.erase(oldSet);
+		}
+
+		std::merge(component1.begin(), component1.end(), component2.begin(),
+				   component2.end(), component1.begin(), edgeComparator);
+		
+		component1.push_back(e);
+		components[newSet] = component1;
+	}
+
+	for (const std::pair<size_t, std::vector<const Edge *>> &component : components) {
+		outfile << "{ {";
+
+		bool printed = false;
+		for (size_t i = 1; i < disjointSet.size(); ++i) {
+			if (disjointSet[i] == component.first) {
+				if (printed) {
+					outfile << ", ";	
+				} else {
+					printed = true;
+				}
+
+				outfile << i;
+			}
+		}
+
+		outfile << "}, { ";
+		for (size_t i = 0; i < component.second.size(); ++i) {
+			const Edge *e = component.second[i];
+			outfile << "(" << e->vertex[LEFT] << ", " << e->vertex[RIGHT] << ", ";
+			if (e->direction == RIGHT) {
+				outfile << e->weight[RIGHT];
+			} else {
+				outfile << e->weight[LEFT];
+			}
+
+			if (i < component.second.size() - 1) {
+				outfile << "), ";
+			}
+		}
+
+		outfile << ") } }\n";
+	}
+
+	return true;
 }
 		
 // * Step Away - print the nodes who are a degree of
 // closeness from the source to a file with the passed name
-void Graph::stepAway(int source, int closeness, std::string file) {
+/*void Graph::stepAway(int source, int closeness, std::string file) {
+	// TODO: Actually take care of this case. Not hard -- run through the entire
+	// component starting from the given source and if anything's not visited,
+	// print it.
+	
+	if (closeness == -1) {
+		return;
+	}
+
+	std::vector<bool> visited(edgeList.size(), 0);
+	size_t degree = 0, left = 0;
+	breadthFirstApply(visited, source, [&](int node) {
+
+	}, true);
+	
 	return;
 }
 */

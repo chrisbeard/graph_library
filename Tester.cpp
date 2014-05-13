@@ -38,21 +38,23 @@ TEST_CASE("addVertex()", "Allocate space for an edge") {
 	GU.addVertex();
 	REQUIRE(!GU.empty());
 }
-	
-// TEST_CASE("addEdge(int v1, int v2, double weight)", "Add graph edge") {
-// 	Graph G(DIRECTED);
-// 	REQUIRE_THROWS(G.addEdge(1,2,3.12));
 
-// 	Graph GG(UNDIRECTED);
-// 	for (size_t i = 0; i < 5; ++i) {
-// 		GG.addVertex();
-// 	}
-// 	GG.addEdge(1,2,3.12);
-// 	GG.addEdge(2,5,7.25);
-// 	GG.addEdge(2,1,3.21);
-// 	GG.addEdge(5,1,6.51);
-// 	GG.writeToFile("test_add-edge.txt");
-// }
+	
+TEST_CASE("addEdge(int v1, int v2, double weight)", "Add graph edge") {
+	Graph G(DIRECTED);
+	REQUIRE(G.empty());
+	REQUIRE_THROWS(G.addEdge(1,2,3.12));
+
+	Graph GG(UNDIRECTED);
+	for (size_t i = 0; i < 5; ++i) {
+		GG.addVertex();
+	}
+	GG.addEdge(1,2,3.12);
+	GG.addEdge(2,5,7.25);
+	GG.addEdge(2,1,3.21);
+	GG.addEdge(5,1,6.51);
+	GG.writeToFile("test_add-edge.txt");
+}
 
 
 TEST_CASE("tree()", "Is tree") {
@@ -87,30 +89,30 @@ TEST_CASE("tree()", "Is tree") {
 	REQUIRE(!G2.tree());
 }
 
-// TEST_CASE("DFT(int, std::string)", "Depth Frist Traverse") {
-// 	Graph G(UNDIRECTED);
-// 	G.readFromFile("g1.txt");
-// 	G.writeToFile("g1_output");
-// 	G.DFT(1, "g1-dft1.txt");
+TEST_CASE("DFT(int, std::string)", "Depth Frist Traverse") {
+	Graph G(UNDIRECTED);
+	G.readFromFile("g1.txt");
+	G.writeToFile("g1_output");
+	G.DFT(1, "g1-dft1.txt");
 
-// 	Graph G2(DIRECTED);
-// 	G2.readFromFile("g2.txt");
-// 	G2.writeToFile("g2_output.txt");
-// 	G2.DFT(2, "g2-dft2.txt");
-// 	G2.DFT(4, "g2-dft4.txt");
-// }
+	Graph G2(DIRECTED);
+	G2.readFromFile("g2.txt");
+	G2.writeToFile("g2_output.txt");
+	G2.DFT(2, "g2-dft2.txt");
+	G2.DFT(4, "g2-dft4.txt");
+}
 
-// TEST_CASE("BFT(int, std::string)", "Breadth Frist Traverse") {
-// 	Graph G(UNDIRECTED);
-// 	G.readFromFile("g1.txt");
-// 	G.writeToFile("g1_output");
-// 	G.BFT(2, "g1-bft2.txt");
+TEST_CASE("BFT(int, std::string)", "Breadth Frist Traverse") {
+	Graph G(UNDIRECTED);
+	G.readFromFile("g1.txt");
+	G.writeToFile("g1_output");
+	G.BFT(2, "g1-bft2.txt");
 
-// 	Graph G2(DIRECTED);
-// 	G2.readFromFile("g2.txt");
-// 	G2.writeToFile("g2_output.txt");
-// 	G2.BFT(7, "g2-bft7.txt");
-// }
+	Graph G2(DIRECTED);
+	G2.readFromFile("g2.txt");
+	G2.writeToFile("g2_output.txt");
+	G2.BFT(7, "g2-bft7.txt");
+}
 
 TEST_CASE("numConnectedComponents()", "Number of Connected Components") {
 	Graph G(UNDIRECTED);
@@ -120,4 +122,25 @@ TEST_CASE("numConnectedComponents()", "Number of Connected Components") {
 	Graph G2(DIRECTED);
 	G2.readFromFile("g2.txt");
 	REQUIRE(G2.numConnectedComponents() == 1);
+}
+
+TEST_CASE("bool partitionable()", "Is partitionable") {
+	Graph G(UNDIRECTED);
+	G.readFromFile("g1.txt");
+	REQUIRE_FALSE(G.partitionable());
+
+	Graph G2(DIRECTED);
+	G2.readFromFile("g2.txt");
+	REQUIRE(G2.partitionable());
+}
+
+
+TEST_CASE("MST(std::string)", "Minimum spanning tree") {
+	Graph G(UNDIRECTED);
+	G.readFromFile("g1.txt");
+	REQUIRE(G.MST("g1-mst.txt"));
+
+	Graph G2(DIRECTED);
+	G2.readFromFile("g2.txt");
+	REQUIRE(G2.MST("g2-mst.txt"));
 }

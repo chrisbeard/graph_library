@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <functional>
 
 //This class will be used to create a graph library.
 enum Type {DIRECTED, UNDIRECTED};
@@ -44,6 +45,7 @@ class Graph {
 		void sortEdges(int node);
 		int undirectedClose(int v1, int v2, int &cnt, std::vector<int> &vlist, std::queue<int> &alist);
 		int directedClose(int v1, int v2, int &cnt, std::vector<int> &vlist, std::queue<int> &alist);
+		void breadthFirstApply(std::vector<bool> &visited, int source, const std::function<bool(int)> &lambda, bool ignoreDirections);
 	public:
 		// Construct an empty graph of the specified type
 		Graph(Type t);
