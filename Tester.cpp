@@ -55,37 +55,37 @@ TEST_CASE("addVertex()", "Allocate space for an edge") {
 // }
 
 
-// TEST_CASE("tree()", "Is tree") {
-// 	Graph G(UNDIRECTED);
-// 	for (size_t i = 0; i < 3; ++i) {
-// 		G.addVertex();
-// 	}
-// 	G.addEdge(1,2,3.12);
-// 	G.addEdge(1,3,4.13);
-// 	REQUIRE(G.tree());
-// 	G.addVertex();
-// 	REQUIRE(!G.tree());
+TEST_CASE("tree()", "Is tree") {
+	Graph G(UNDIRECTED);
+	for (size_t i = 0; i < 3; ++i) {
+		G.addVertex();
+	}
+	G.addEdge(1,2,3.12);
+	G.addEdge(1,3,4.13);
+	REQUIRE(G.tree());
+	G.addVertex();
+	REQUIRE(!G.tree());
 
-// 	Graph DG(DIRECTED);
-// 	for (size_t i = 0; i < 3; ++i) {
-// 		DG.addVertex();
-// 	}
-// 	DG.addEdge(1,2,3.12);
-// 	DG.addEdge(1,3,4.13);
-// 	REQUIRE(DG.tree());
-// 	DG.addEdge(3,2,5.32);
-// 	REQUIRE(!DG.tree());
-// 	DG.addEdge(3,1,4.31);
-// 	REQUIRE(!DG.tree());
+	Graph DG(DIRECTED);
+	for (size_t i = 0; i < 3; ++i) {
+		DG.addVertex();
+	}
+	DG.addEdge(1,2,3.12);
+	DG.addEdge(1,3,4.13);
+	REQUIRE(DG.tree());
+	DG.addEdge(3,2,5.32);
+	REQUIRE(!DG.tree());
+	DG.addEdge(3,1,4.31);
+	REQUIRE(!DG.tree());
 
-// 	Graph G1(UNDIRECTED);
-// 	G1.readFromFile("g1.txt");
-// 	REQUIRE(!G1.tree());
+	Graph G1(UNDIRECTED);
+	G1.readFromFile("g1.txt");
+	REQUIRE(!G1.tree());
 
-// 	Graph G2(DIRECTED);
-// 	G2.readFromFile("g2.txt");
-// 	REQUIRE(!G2.tree());
-// }
+	Graph G2(DIRECTED);
+	G2.readFromFile("g2.txt");
+	REQUIRE(!G2.tree());
+}
 
 // TEST_CASE("DFT(int, std::string)", "Depth Frist Traverse") {
 // 	Graph G(UNDIRECTED);

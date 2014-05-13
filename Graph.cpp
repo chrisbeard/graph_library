@@ -175,61 +175,133 @@ void Graph::addEdge(int v1, int v2, double weight) {
 	// Allocates an Edge on the heap
 	// Edge is inserted at the front of the edge list for both node values
 	// The left & right pointers are adjusted to point to the previous first edges in the list
-	Edge *e = new Edge(node1, node2, weight1, weight2, direction, edgeList[node1], edgeList[node2]);
-	edgeList[node1] = e;
-	edgeList[node2] = e;
-	sortEdges(node1);
-	sortEdges(node2);
-}
+	Edge *e = new Edge(node1, node2, weight1, weight2, direction, nullptr, nullptr);
+	number_of_edges++;
 
-//used to sort the edges as they are added to the edge list
-void Graph::sortEdges(int node) {
-	Edge *edgePtr = edgeList[node];
-	Edge *edgeNext = edgeList[node];
-	Edge *edgePrev = edgeList[node];
-	int index, index2 = 0;
-	bool isFirst = true;
-	bool isSorted = false;
-	//sort in ascending order
-	while(!isSorted) {
-		if (edgePtr->vertex[LEFT] == node) {
-			edgeNext = edgePtr->link[LEFT];
-			index = RIGHT;
-		}
-		else {
-			edgeNext = edgePtr->link[RIGHT];
-			index = LEFT;
-		}
-		//if we've reached the end of the list
-		if (edgeNext == nullptr) {
-			break;
-		}
-		index2 = (edgeNext->vertex[LEFT] == node ? RIGHT : LEFT);
-		if (edgePtr->vertex[index] > edgeNext->vertex[index2]) {
-			//swap index values
-			index = (index == LEFT ? RIGHT : LEFT);
-			index2 = (index2 == LEFT ? RIGHT : LEFT);	
-			//adjust pointers
-			edgePtr->link[index] = edgeNext->link[index2];
-			edgeNext->link[index2] = edgePtr;
-			if (isFirst) {
-				edgeList[node] = edgeNext;
-				isFirst = false;		
-			}
-			else {
-				// index3 = (edgePrev->vertex[LEFT] == node ? LEFT : RIGHT);
-				edgePrev->link[LEFT] = edgeNext;
+	if (!edgeList[node1]) {
+		edgeList[node1] = e;
+	} else {
+		Edge *current = edgeList[node1];
+		while (current) {
+			if (current->vertex[LEFT] == e->vertex[LEFT]) {
+				if (current->link[LEFT] && current->link[LEFT]->vertex[RIGHT] >= e->vertex[RIGHT]) {
+					e->link[LEFT] = current->link[LEFT];
+					if (edgeList[node1] == current) {
+						edgeList[node1] = e;
+					}
+
+					break;
+				} else if (current->link[LEFT] && current->link[LEFT]->vertex[RIGHT] < e->vertex[RIGHT]) {
+					current = current->link[LEFT];
+				} else {
+					current->link[LEFT] = e;
+					break;
+				}
+			} else {
+				if (current->link[RIGHT] && current->link[RIGHT]->vertex[RIGHT] >= e->vertex[RIGHT]) {
+					e->link[LEFT] = current->link[LEFT];
+					if (edgeList[node2] == current) {
+						edgeList[node2] = e;
+					}
+
+					break;
+				} else if (current->link[RIGHT] && current->link[RIGHT]->vertex[RIGHT] < e->vertex[RIGHT]) {
+					current = current->link[RIGHT];
+				} else {
+					current->link[RIGHT] = e;
+					break;
+				}
 			}
 		}
-		//if this edge has the smaller vertex, the list is sorted
-		else {
-			isSorted = true;
+	}
+
+	if (!edgeList[node2]) {
+		edgeList[node2] = e;
+	} else {
+		Edge *current = edgeList[node2];
+		while (current) {
+			if (current->vertex[RIGHT] == e->vertex[RIGHT]) {
+				if (current->link[RIGHT] && current->link[RIGHT]->vertex[LEFT] >= e->vertex[LEFT]) {
+					e->link[RIGHT] = current->link[RIGHT];
+					if (edgeList[node2] == current) {
+						edgeList[node2] = e;
+					}
+
+					break;
+				} else if (current->link[RIGHT] && current->link[RIGHT]->vertex[LEFT] < e->vertex[LEFT]) {
+					current = current->link[RIGHT];
+				} else {
+					current->link[RIGHT] = e;
+					break;
+				}
+			} else {
+				if (current->link[LEFT] && current->link[LEFT]->vertex[LEFT] >= e->vertex[LEFT]) {
+					e->link[RIGHT] = current->link[RIGHT];
+					if (edgeList[node1] == current) {
+						edgeList[node1] = e;
+					}
+
+					break;
+				} else if (current->link[LEFT] && current->link[LEFT]->vertex[LEFT] < e->vertex[LEFT]) {
+					current = current->link[LEFT];
+				} else {
+					current->link[LEFT] = e;
+					break;
+				}
+			}
 		}
-		//if we swapped the next node will now be the previous
-		//otherwise, we will exit the loop anyway
-		edgePrev = edgeNext;
 	}
 }
+
+
+//used to sort the edges as they are added to the edge list
+// void Graph::sortEdges(int node) {
+// 	Edge *edgePtr = edgeList[node];
+// 	Edge *edgeNext = edgeList[node];
+// 	Edge *edgePrev = edgeList[node];
+// 	int index, index2 = 0;
+// 	bool isFirst = true;
+// 	bool isSorted = false;
+// 	//sort in ascending order
+// 	while(!isSorted) {
+// 		if (edgePtr->vertex[LEFT] == node) {
+// 			edgeNext = edgePtr->link[LEFT];
+// 			index = RIGHT;
+// 		}
+// 		else {
+// 			edgeNext = edgePtr->link[RIGHT];
+// 			index = LEFT;
+// 		}
+// 		//if we've reached the end of the list
+// 		if (edgeNext == nullptr) {
+// 			break;
+// 		}
+// 		index2 = (edgeNext->vertex[LEFT] == node ? RIGHT : LEFT);
+// 		if (edgePtr->vertex[index] > edgeNext->vertex[index2]) {
+// 			//swap index values
+// 			index = (index == LEFT ? RIGHT : LEFT);
+// 			index2 = (index2 == LEFT ? RIGHT : LEFT);	
+// 			//adjust pointers
+// 			edgePtr->link[index] = edgeNext->link[index2];
+// 			edgeNext->link[index2] = edgePtr;
+// 			if (isFirst) {
+// 				edgeList[node] = edgeNext;
+// 				isFirst = false;		
+// 			}
+// 			else {
+// 				// index3 = (edgePrev->vertex[LEFT] == node ? LEFT : RIGHT);
+// 				edgePrev->link[LEFT] = edgeNext;
+// 			}
+// 		}
+// 		//if this edge has the smaller vertex, the list is sorted
+// 		else {
+// 			isSorted = true;
+// 		}
+// 		//if we swapped the next node will now be the previous
+// 		//otherwise, we will exit the loop anyway
+// 		edgePrev = edgeNext;
+// 	}
+// }
 		
 // Add a vertex to the head of the edge list
 void Graph::addVertex() {
@@ -269,13 +341,14 @@ int Graph::numConnectedComponents() {
 bool Graph::tree() {
 //	std::cout << "Size: " << edgeList.size()-1 << " Edges: " << number_of_edges << "\n";
 	// Undirected case
-	if (!directed && (edgeList.size() - 2) != number_of_edges) {
-		return false;
-	}
+	// std::cout << "Size: " << edgeList.size() - 1 << " Edges: " << number_of_edges << "\n";
+
+	// if (!directed && (edgeList.size() - 2) != number_of_edges) {
+	// 	return false;
+	// }
 	if (directed && (number_of_edges >= edgeList.size() - 1)) {
 		return false;
 	}
-	std::cout << "Size: " << edgeList.size() - 1 << " Edges: " << number_of_edges << "\n";
 	
 	bool retval = true;
 	//keeps track of which nodes have been visited
@@ -284,9 +357,8 @@ bool Graph::tree() {
 	std::queue<int> order;
 	//check if tree is connected and acyclic	
 	treeHelper(1, visited);			
-	for(size_t i = 1; i < visited.size(); i++){
-		if(visited[i] != 1){
-			std::cout << "here\n";
+	for (size_t i = 1; i < visited.size(); i++) {
+		if (visited[i] != 1) {
 			retval = false;
 			break;
 		}
@@ -294,10 +366,10 @@ bool Graph::tree() {
 	return retval;
 }
 
-//Performs the DFT to check if the graph is a tree
+// Performs the DFT to check if the graph is a tree
 void Graph::treeHelper(int node, std::vector<int> &vlist) {
 	Edge *edgePtr = edgeList[node];
-	//mark node as visited
+	// mark node as visited
 	if (vlist[node] >= 1) {
 		vlist[node] = 2;
 	}
@@ -305,27 +377,25 @@ void Graph::treeHelper(int node, std::vector<int> &vlist) {
 		vlist[node] = 1;
 	}
 
-	std::cout << node << " " << vlist[node] << "\n";
-
-	//while there are still connected nodes
+	// while there are still connected nodes
 	while (edgePtr != nullptr) {
-		//if this is the left vertex
+		// if this is the left vertex
 		if (edgePtr->vertex[LEFT] == node) {
-			//if the right vertex has not been visited
+			// if the right vertex has not been visited
 			if (!vlist[edgePtr->vertex[RIGHT]]) {
 				treeHelper(edgePtr->vertex[RIGHT], vlist);
 			}
 			else {
-				//increment pointer
+				// increment pointer
 				edgePtr = edgePtr->link[LEFT];
 			}
 		}
-		//if vertex[LEFT] has not been visited
+		// if vertex[LEFT] has not been visited
 		else if (!vlist[edgePtr->vertex[LEFT]]) {
 			treeHelper(edgePtr->vertex[LEFT], vlist);	
 		}
 		else {
-			//increment pointer
+			// increment pointer
 			edgePtr = edgePtr->link[RIGHT];
 		}
 	}
@@ -359,7 +429,6 @@ void Graph::DFT(int source, std::string file) {
 
 // Performs the DFT for an undirected graph
 void Graph::DFUndirected(int node, std::vector<int> &vlist, std::queue<int>& olist) {
-	std::cout << node << "\n";
 
 	Edge *edgePtr = edgeList[node];
 	vlist[node] = 1;
@@ -378,7 +447,6 @@ void Graph::DFUndirected(int node, std::vector<int> &vlist, std::queue<int>& oli
 
 // Performs the DFT for a directed graph
 void Graph::DFDirected(int node, std::vector<int> &vlist, std::queue<int>& olist) {
-	std::cout << node << "\n";
 
 	Edge *edgePtr = edgeList[node];
 	vlist[node] = 1;
