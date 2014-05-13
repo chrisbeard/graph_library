@@ -28,7 +28,7 @@ std::set<const Graph::Edge *> Graph::allEdges(void) const {
 		Graph::Edge *e = edgeList[i];
 		while (e) {
 			edges.insert(e);
-			e = e->left ?: e->right;
+			e = e->link[LEFT] ?: e->link[RIGHT];
 		}
 	}
 
@@ -127,17 +127,17 @@ void Graph::writeToFile(std::string file) {
 		}
 
 		if (!directed) {
-			outputFile << (*a)->v1 << " " << (*a)->v2 << " " << (*a)->weight1 << "\n";
+			outputFile << (*a)->vertex[LEFT] << " " << (*a)->vertex[RIGHT] << " " << (*a)->weight[LEFT] << "\n";
 		}
 		else if (directed && (*a)->direction == 0) {
-			outputFile << (*a)->v1 << " " << (*a)->v2 << " " << (*a)->weight1 << "\n";
-			outputFile << (*a)->v2 << " " << (*a)->v1 << " " << (*a)->weight2 << "\n";
+			outputFile << (*a)->vertex[LEFT] << " " << (*a)->vertex[RIGHT] << " " << (*a)->weight[LEFT] << "\n";
+			outputFile << (*a)->vertex[RIGHT] << " " << (*a)->vertex[LEFT] << " " << (*a)->weight[RIGHT] << "\n";
 		}
 		else if (directed && (*a)->direction == 1) {
-			outputFile << (*a)->v1 << " " << (*a)->v2 << " " << (*a)->weight1 << "\n";
+			outputFile << (*a)->vertex[LEFT] << " " << (*a)->vertex[RIGHT] << " " << (*a)->weight[LEFT] << "\n";
 		}
 		else {
-			outputFile << (*a)->v2 << " " << (*a)->v1 << " " << (*a)->weight2 << "\n";
+			outputFile << (*a)->vertex[RIGHT] << " " << (*a)->vertex[LEFT] << " " << (*a)->weight[RIGHT] << "\n";
 		}
 	}
 }
@@ -149,10 +149,6 @@ bool Graph::empty() {
 
 // Add an edge to the edge list
 void Graph::addEdge(int v1, int v2, double weight) {
-	if ((size_t)v1 >= edgeList.size() || (size_t)v2 >= edgeList.size()) {
-		throw std::invalid_argument("Given vertices must exist in the graph.");
-	}
-
 	int node1 = std::min(v1, v2);
 	int node2 = std::max(v1, v2);
 	double weight1 = 0;
@@ -161,24 +157,78 @@ void Graph::addEdge(int v1, int v2, double weight) {
 	if (directed) {
 		if (node1 == v1) {
 			weight1 = weight;
-			direction = 1;
+			direction = LEFT;
 		}
 		else {
 			weight2 = weight;
-			direction = 2;
+			direction = RIGHT;
 		}
-	} else {
+	}
+	else {
 		weight1 = weight;
 		weight2 = weight;
 	}
-	
+	// Need to make sure the list can hold largest node
+	for (size_t i = edgeList.size(); i < (unsigned)std::max(v1,v2); ++i) {
+		addVertex();
+	}
 	// Allocates an Edge on the heap
 	// Edge is inserted at the front of the edge list for both node values
 	// The left & right pointers are adjusted to point to the previous first edges in the list
 	Edge *e = new Edge(node1, node2, weight1, weight2, direction, edgeList[node1], edgeList[node2]);
 	edgeList[node1] = e;
 	edgeList[node2] = e;
-	++number_of_edges;
+	sortEdges(node1);
+	sortEdges(node2);
+}
+
+//used to sort the edges as they are added to the edge list
+void Graph::sortEdges(int node) {
+	Edge *edgePtr = edgeList[node];
+	Edge *edgeNext = edgeList[node];
+	Edge *edgePrev = edgeList[node];
+	int index, index2 = 0;
+	bool isFirst = true;
+	bool isSorted = false;
+	//sort in ascending order
+	while(!isSorted) {
+		if (edgePtr->vertex[LEFT] == node) {
+			edgeNext = edgePtr->link[LEFT];
+			index = RIGHT;
+		}
+		else {
+			edgeNext = edgePtr->link[RIGHT];
+			index = LEFT;
+		}
+		//if we've reached the end of the list
+		if (edgeNext == nullptr) {
+			break;
+		}
+		index2 = (edgeNext->vertex[LEFT] == node ? RIGHT : LEFT);
+		if (edgePtr->vertex[index] > edgeNext->vertex[index2]) {
+			//swap index values
+			index = (index == LEFT ? RIGHT : LEFT);
+			index2 = (index2 == LEFT ? RIGHT : LEFT);	
+			//adjust pointers
+			edgePtr->link[index] = edgeNext->link[index2];
+			edgeNext->link[index2] = edgePtr;
+			if (isFirst) {
+				edgeList[node] = edgeNext;
+				isFirst = false;		
+			}
+			else {
+				// index3 = (edgePrev->vertex[LEFT] == node ? LEFT : RIGHT);
+				edgePrev->link[LEFT] = edgeNext;
+			}
+		}
+		//if this edge has the smaller vertex, the list is sorted
+		else {
+			isSorted = true;
+		}
+		//if we swapped the next node will now be the previous
+		//otherwise, we will exit the loop anyway
+		edgePrev = edgeNext;
+	}
 }
 		
 // Add a vertex to the head of the edge list
@@ -190,7 +240,29 @@ void Graph::addVertex() {
 		
 // Count connected components
 int Graph::numConnectedComponents() {
-	return -1;
+	size_t components = 0;
+	bool done = false;
+
+	std::vector<int> visited = std::vector<int>(edgeList.size(), 0);
+	std::queue<int> order;
+	while (!done) {
+		int start = 0;
+		done = true;
+		for (size_t i = 0; i < visited.size(); i ++) {
+			if (visited[i] == 0 && edgeList[i]) {
+				done = false;
+				start = i;
+				break;
+			}
+		}
+		if (!done) {
+			// Undirected search is what we want here - direction doesn't matter
+			BFUndirected(start, visited, order);
+			++components;
+		}
+	}
+
+	return components;
 }
 		
 // Tree check
@@ -203,12 +275,66 @@ bool Graph::tree() {
 	if (directed && (number_of_edges >= edgeList.size() - 1)) {
 		return false;
 	}
+	std::cout << "Size: " << edgeList.size() - 1 << " Edges: " << number_of_edges << "\n";
+	
+	bool retval = true;
+	//keeps track of which nodes have been visited
+	std::vector<int> visited = std::vector<int>(edgeList.size(), 0);
+	//keeps track of the order in which the nodes are visited
+	std::queue<int> order;
+	//check if tree is connected and acyclic	
+	treeHelper(1, visited);			
+	for(size_t i = 1; i < visited.size(); i++){
+		if(visited[i] != 1){
+			std::cout << "here\n";
+			retval = false;
+			break;
+		}
+	}
+	return retval;
+}
 
-	return true;
+//Performs the DFT to check if the graph is a tree
+void Graph::treeHelper(int node, std::vector<int> &vlist) {
+	Edge *edgePtr = edgeList[node];
+	//mark node as visited
+	if (vlist[node] >= 1) {
+		vlist[node] = 2;
+	}
+	else {
+		vlist[node] = 1;
+	}
+
+	std::cout << node << " " << vlist[node] << "\n";
+
+	//while there are still connected nodes
+	while (edgePtr != nullptr) {
+		//if this is the left vertex
+		if (edgePtr->vertex[LEFT] == node) {
+			//if the right vertex has not been visited
+			if (!vlist[edgePtr->vertex[RIGHT]]) {
+				treeHelper(edgePtr->vertex[RIGHT], vlist);
+			}
+			else {
+				//increment pointer
+				edgePtr = edgePtr->link[LEFT];
+			}
+		}
+		//if vertex[LEFT] has not been visited
+		else if (!vlist[edgePtr->vertex[LEFT]]) {
+			treeHelper(edgePtr->vertex[LEFT], vlist);	
+		}
+		else {
+			//increment pointer
+			edgePtr = edgePtr->link[RIGHT];
+		}
+	}
+	return;
 }
 
 // Depth First Traverse - proceed from source
 void Graph::DFT(int source, std::string file) {
+
 	// keeps track of which nodes have been visited
 	std::vector<int> visited = std::vector<int>(edgeList.size(), 0);
 	// keeps track of the order in which the nodes are visited
@@ -233,16 +359,18 @@ void Graph::DFT(int source, std::string file) {
 
 // Performs the DFT for an undirected graph
 void Graph::DFUndirected(int node, std::vector<int> &vlist, std::queue<int>& olist) {
+	std::cout << node << "\n";
+
 	Edge *edgePtr = edgeList[node];
 	vlist[node] = 1;
 
 	while (edgePtr != nullptr) {
-		if (!vlist[edgePtr->v2]) {
-			DFUndirected(edgePtr->v2, vlist, olist);
-		} else if (!vlist[edgePtr->v1]) {
-			DFUndirected(edgePtr->v1, vlist, olist);
+		if (!vlist[edgePtr->vertex[RIGHT]]) {
+			DFUndirected(edgePtr->vertex[RIGHT], vlist, olist);
+		} else if (!vlist[edgePtr->vertex[LEFT]]) {
+			DFUndirected(edgePtr->vertex[LEFT], vlist, olist);
 		}
-		edgePtr = edgePtr->v1 == node ? edgePtr->left : edgePtr->right;
+		edgePtr = edgePtr->vertex[LEFT] == node ? edgePtr->link[LEFT] : edgePtr->link[RIGHT];
 	}
 
 	olist.push(node);
@@ -250,16 +378,18 @@ void Graph::DFUndirected(int node, std::vector<int> &vlist, std::queue<int>& oli
 
 // Performs the DFT for a directed graph
 void Graph::DFDirected(int node, std::vector<int> &vlist, std::queue<int>& olist) {
+	std::cout << node << "\n";
+
 	Edge *edgePtr = edgeList[node];
 	vlist[node] = 1;
 
 	while(edgePtr != nullptr) {
-		if (edgePtr->direction == 1 && !vlist[edgePtr->v2]) {
-			DFDirected(edgePtr->v2, vlist, olist);
-		} else if (edgePtr->direction == 2 && !vlist[edgePtr->v1]) {
-			DFDirected(edgePtr->v1, vlist, olist);
+		if (edgePtr->direction == 1 && !vlist[edgePtr->vertex[RIGHT]]) {
+			DFDirected(edgePtr->vertex[RIGHT], vlist, olist);
+		} else if (edgePtr->direction == 2 && !vlist[edgePtr->vertex[LEFT]]) {
+			DFDirected(edgePtr->vertex[LEFT], vlist, olist);
 		}
-		edgePtr = edgePtr->v1 == node ? edgePtr->left : edgePtr->right;
+		edgePtr = edgePtr->vertex[LEFT] == node ? edgePtr->link[LEFT] : edgePtr->link[RIGHT];
 	}
 
 	olist.push(node);
@@ -302,13 +432,13 @@ void Graph::BFUndirected(int node, std::vector<int> &vlist, std::queue<int> &oli
 
 		Edge *edge = edgeList[node];
 		while (edge) {
-			if (edge->v1 == node && !vlist[edge->v2]) {
-				nodeQueue.push(edge->v2);
-			} else if (edge->v2 == node && !vlist[edge->v1]) {
-				nodeQueue.push(edge->v1);
+			if (edge->vertex[LEFT] == node && !vlist[edge->vertex[RIGHT]]) {
+				nodeQueue.push(edge->vertex[RIGHT]);
+			} else if (edge->vertex[RIGHT] == node && !vlist[edge->vertex[LEFT]]) {
+				nodeQueue.push(edge->vertex[LEFT]);
 			}
 
-			edge = edge->v1 == node ? edge->left : edge->right;
+			edge = edge->vertex[LEFT] == node ? edge->link[LEFT] : edge->link[RIGHT];
 		}
 
 		olist.push(node);
@@ -328,13 +458,13 @@ void Graph::BFDirected(int node, std::vector<int> &vlist, std::queue<int> &olist
 
 		Edge *edge = edgeList[node];
 		while (edge) {
-			if (edge->v1 == node && !vlist[edge->v2] && edge->direction == 1) {
-				nodeQueue.push(edge->v2);
-			} else if (edge->v2 == node && !vlist[edge->v1] && edge->direction == 2) {
-				nodeQueue.push(edge->v1);
+			if (edge->vertex[LEFT] == node && !vlist[edge->vertex[RIGHT]] && edge->direction == 1) {
+				nodeQueue.push(edge->vertex[RIGHT]);
+			} else if (edge->vertex[RIGHT] == node && !vlist[edge->vertex[LEFT]] && edge->direction == 2) {
+				nodeQueue.push(edge->vertex[LEFT]);
 			}
 
-			edge = edge->v1 == node ? edge->left : edge->right;
+			edge = edge->vertex[LEFT] == node ? edge->link[LEFT] : edge->link[RIGHT];
 		}
 
 		olist.push(node);
@@ -345,7 +475,7 @@ void Graph::BFDirected(int node, std::vector<int> &vlist, std::queue<int> &olist
 		
 // Closeness - determine minimum number of edges to get
 //  from one node to the other
-int Graph::closeness(int v1, int v2) {
+int Graph::closeness(int vertex[LEFT], int vertex[RIGHT]) {
 	return -1;
 }
 */
@@ -359,33 +489,33 @@ bool Graph::partitionable() {
 		}
 		Edge* edgePtr = edgeList[i];
 		while(edgePtr != nullptr){ // for all connected nodes
-			if(edgePtr->v1 == group[i]){ 
-				// if we can get to v2
+			if(edgePtr->vertex[LEFT] == group[i]){ 
+				// if we can get to vertex[RIGHT]
 				if(edgePtr->direction != 2){
 					// if graph is not partitionable
-					if(group[edgePtr->v2] == group[i]){
+					if(group[edgePtr->vertex[RIGHT]] == group[i]){
 						return false;
 					}	
 					//if node has not been set
-					else if(group[edgePtr->v2] == 0){
-						group[edgePtr->v2] = ((group[i] + 1) % 2);
+					else if(group[edgePtr->vertex[RIGHT]] == 0){
+						group[edgePtr->vertex[RIGHT]] = ((group[i] + 1) % 2);
 					}
 				}
-				edgePtr = edgePtr->left;
+				edgePtr = edgePtr->link[LEFT];
 			}
-			else{ // if this is v2
-				// if we can get to v1
+			else{ // if this is vertex[RIGHT]
+				// if we can get to vertex[LEFT]
 				if(edgePtr->direction != 1){
 					//if the graph is not partionable
-					if(group[edgePtr->v1] == group[i]){
+					if(group[edgePtr->vertex[LEFT]] == group[i]){
 						return false;
 					}
 					//if node has not been set
-					else if(group[edgePtr->v1] == 0){
-						group[edgePtr->v1] = ((group[i] + 1) % 2);
+					else if(group[edgePtr->vertex[LEFT]] == 0){
+						group[edgePtr->vertex[LEFT]] = ((group[i] + 1) % 2);
 					}
 				}
-				edgePtr = edgePtr->right;
+				edgePtr = edgePtr->link[RIGHT];
 			}
 		}
 	}
