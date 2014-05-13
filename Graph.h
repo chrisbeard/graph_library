@@ -42,6 +42,8 @@ class Graph {
 		void BFDirected(int node, std::vector<int> &vlist, std::queue<int> &oList);
 		void treeHelper(int source, std::vector<int> &vlist);
 		void sortEdges(int node);
+		int undirectedClose(int v1, int v2, int &cnt, std::vector<int> &vlist, std::queue<int> &alist);
+		int directedClose(int v1, int v2, int &cnt, std::vector<int> &vlist, std::queue<int> &alist);
 	public:
 		// Construct an empty graph of the specified type
 		Graph(Type t);
