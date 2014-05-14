@@ -771,21 +771,68 @@ bool Graph::MST(std::string file) {
 		
 // * Step Away - print the nodes who are a degree of
 // closeness from the source to a file with the passed name
-/*void Graph::stepAway(int source, int closeness, std::string file) {
+void Graph::stepAway(int source, int closeness, std::string file) {
 	// TODO: Actually take care of this case. Not hard -- run through the entire
 	// component starting from the given source and if anything's not visited,
 	// print it.
 	
-	if (closeness == -1) {
-		return;
+	std::ofstream outfile(file);
+	if (!outfile) {
+		throw ("Could not open output file for writing");
 	}
 
 	std::vector<bool> visited(edgeList.size(), 0);
-	size_t degree = 0, left = 0;
-	breadthFirstApply(visited, source, [&](int node) {
-
-	}, true);
+	std::queue<int> currentQueue;
+	std::queue<int> nextQueue;
 	
-	return;
+	currentQueue.push(source);
+	visited[source] = true;
+
+	int degree = 0;
+
+	while (!currentQueue.empty()) {
+		while (!currentQueue.empty()) {
+			int current = currentQueue.front();
+			currentQueue.pop();
+				
+			Edge *e = edgeList[current];
+			while (e) {
+
+				if (e->vertex[LEFT] == current) {
+					if (!visited[e->vertex[RIGHT]] && e->direction != RIGHT) {
+						nextQueue.push(e->vertex[RIGHT]);
+						visited[e->vertex[RIGHT]] = true;
+					}
+					e = e->link[LEFT];
+				} else if (e->vertex[RIGHT] == current) {
+					if (!visited[e->vertex[LEFT]] && e->direction != LEFT) {
+						nextQueue.push(e->vertex[LEFT]);
+						visited[e->vertex[LEFT]] = true;
+					}
+					e = e->link[RIGHT];
+				}
+			}
+		}
+
+		++degree;
+		currentQueue = nextQueue;
+		nextQueue = std::queue<int> ();
+		if (degree == closeness) {
+			break;
+		}
+	}
+
+	if (closeness == -1) {
+		for (size_t i = 1; i < visited.size(); ++i) {
+			if (!visited[i]) {
+				outfile << i << "\n";
+			}
+		}
+		return;
+	}
+
+	while (!currentQueue.empty()) {
+		outfile << currentQueue.front() << "\n";
+		currentQueue.pop();	
+	}
 }
-*/

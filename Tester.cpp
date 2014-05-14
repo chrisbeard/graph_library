@@ -144,3 +144,16 @@ TEST_CASE("MST(std::string)", "Minimum spanning tree") {
 	G2.readFromFile("g2.txt");
 	REQUIRE(G2.MST("g2-mst.txt"));
 }
+
+TEST_CASE("stepAway(int source, int closeness, std::string file)", "Find nodes of of n degrees away") {
+	Graph G(UNDIRECTED);
+	G.readFromFile("g1.txt");
+	G.stepAway(1,2,"g1-stepaway 1 2.txt");
+	G.stepAway(2,1,"g1-stepaway 2 1.txt");
+	G.stepAway(4,1,"g1-stepaway 4 1.txt");
+	G.stepAway(2, -1, "g1-stepaway 2 -1.txt");
+
+	Graph G2(DIRECTED);
+	G2.readFromFile("g2.txt");
+	G2.stepAway(4, -1, "g2-stepaway 4 -1.txt");
+}
