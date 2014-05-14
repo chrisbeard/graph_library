@@ -504,75 +504,67 @@ int Graph::closeness(int v1, int v2) {
 	if(v1 == v2){
 		return 0;
 	}
-	int retval = 0;
-	int count = 1;
-	int distance = 0;
-	std::vector<int> visited = std::vector<int>(edgeList.size(), 0);
-	std::queue<int> adjacent;
-	adjacent.push(v1);
-	//BFS
-	while(!adjacent.empty()){
-		//if this node has not been visited
-		if(!visited[adjacent.front()]){
-			if(!directed){
-				distance = undirectedClose(adjacent.front(), v2, count, visited, adjacent);
-			}
-			else{
-				distance = directedClose(adjacent.front(), v2, count, visited, adjacent);
-			}
-			//if this edge is linked to v2
-			if(distance == 0){
-				retval++;
-				break;
-			}
-			if(count <= 0)
-			retval++;			
-		}
-		adjacent.pop();
-		count--;
+	std::vector<int> distance = std::vector<int>(edgeList.size(), 0xFF);
+	std::set<int> unvisited;
+	for(uint i = 0; i < edgeList.size(); i++){
+		unvisited.insert(i);
 	}
-	//if the nodes are not connected
-	if(retval == 0){
-		retval = -1;
+	bool finished = false;
+	int retval = -1;
+	distance[v1] = 0;
+	int node = v1;
+	//while all nodes have not been visited
+	while(!finished){
+		//find distances of all adjacent nodes
+		undirectedClose(node, distance, unvisited);
+		//mark current node as visited
+		unvisited.erase(node);
+		finished = true;
+		//find the next unvisited node with the smallest distance
+		for(auto i = unvisited.begin(); i != unvisited.end(); i++){
+			if(!finished){
+				node = *i;
+				finished = false;
+			}
+			else if(distance[*i] < distance[node]){
+				node = *i;
+			}
+		}
+		//if there is no path to the next node
+		if(distance[node] == 0xFF){
+			retval = -1;
+			finished = true;
+		}
+		//if we have visited all nodes
+		if(finished && retval != -1){
+			retval = distance[v2];
+		}
 	}
 	return retval;
 }
 
-int Graph::undirectedClose(int v1, int v2, int &cnt, std::vector<int> &vlist, std::queue<int> &alist){
-	Edge * edgePtr = edgeList[v1];
-	//for all edges 
+void Graph::undirectedClose(int v1, std::vector<int> &distance, std::set<int> unvisited){
+	Edge *edgePtr = edgeList[v1];
+	//for all edges
 	while(edgePtr != nullptr){
-		//if the nodes are linked
-		if(edgePtr->vertex[LEFT] == v2 || edgePtr->vertex[RIGHT] == v2){
-			return 0;
+		//find which node it is pointing to
+		int next = (edgePtr->vertex[LEFT] == v1 ? edgePtr->vertex[RIGHT] : edgePtr->vertex[LEFT]);	
+		//relative distance = distance of v1 + 1, if smaller than current value
+		if(!unvisited.count(next)){
+			distance[next] = std::min((distance[v1] + 1), distance[next]);
 		}
-		alist.push(edgePtr->vertex[LEFT] == v1 ? edgePtr->vertex[RIGHT] : edgePtr->vertex[LEFT] );
-		cnt ++;
+		//iterate edge pointer
 		edgePtr = (edgePtr->vertex[LEFT] == v1 ? edgePtr->link[LEFT] : edgePtr->link[RIGHT]);
 	}
-	//mark node as visited
-	vlist[v1] = 1;
-	return 1;
 }
+/*
+void Graph::directedClose(int v1, int v2, std::vector<int> &distance){
+	Edge *edgePtr = edgeList[v1];
+	while(edgePtr != nullptr){
 
-int Graph::directedClose(int v1, int v2, int &cnt, std::vector<int> &vlist, std::queue<int> &alist){
-	Edge * edgePtr = edgeList[v1];
-	//for all edges 
-	while(edgePtr != nullptr){
-		//if the nodes are linked
-		if((edgePtr->vertex[LEFT] == v2 && edgePtr->direction == RIGHT) || (edgePtr->vertex[RIGHT] == v2 && edgePtr->direction == LEFT)){
-			return 0;	
-		}
-		else if((edgePtr->vertex[LEFT] == v1 && edgePtr->direction == LEFT) || (edgePtr->vertex[RIGHT] == v1 && edgePtr->direction == RIGHT)){		
-			cnt++;
-			alist.push(edgePtr->vertex[LEFT] == v1 ? edgePtr->vertex[RIGHT] : edgePtr->vertex[LEFT]);
-		}
-		edgePtr = (edgePtr->vertex[LEFT] == v1 ? edgePtr->link[LEFT] : edgePtr->link[RIGHT]);
 	}
-	//mark node as visited
-	vlist[v1] = 1;
-	return 1;
 }
+*/
 
 // Partition - determine if you can partition the graph
 bool Graph::partitionable() {
