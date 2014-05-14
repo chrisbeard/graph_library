@@ -44,7 +44,7 @@ class Graph {
 		void treeHelper(int source, std::vector<int> &vlist);
 		void sortEdges(int node);
 		void undirectedClose(int v1, std::vector<int> &distance, std::set<int> unvisited);
-		void directedClose(int v1, int v2, std::vector<int> &dlist, std::queue<int> &alist);
+		void directedClose(int v1, std::vector<int> &distance, std::set<int> unvisited);
 		void breadthFirstApply(std::vector<bool> &visited, int source, const std::function<bool(int)> &lambda, bool ignoreDirections);
 	public:
 		// Construct an empty graph of the specified type
